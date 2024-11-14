@@ -1,0 +1,142 @@
+import random
+import time
+
+class FootballGame:
+    def __init__(self, team1, team2):
+        self.team1 = team1
+        self.team2 = team2
+        self.team1_score = 0
+        self.team2_score = 0
+        self.time_remaining = 90  # Match duration in minutes
+
+    def score_goal(self, team):
+        if team == self.team1:
+            self.team1_score += 1
+        elif team == self.team2:
+            self.team2_score += 1
+
+    def play(self):
+        while self.time_remaining > 0:
+            self.time_remaining -= 1
+            print(f"Time remaining: {self.time_remaining} minutes")
+            
+            # Random event of a goal being scored
+            if random.random() < 0.05:  # 5% chance to score in each minute
+                scoring_team = random.choice([self.team1, self.team2])
+                print(f"{scoring_team} scores a goal!")
+                self.score_goal(scoring_team)
+
+            time.sleep(1)  # Sleep for a second to simulate time passing
+
+        self.display_score()
+
+    def display_score(self):
+        print(f"\nFinal Score: {self.team1} {self.team1_score} - {self.team2} {self.team2_score}")
+        if self.team1_score > self.team2_score:
+            print(f"{self.team1} wins!")
+        elif self.team1_score < self.team2_score:
+            print(f"{self.team2} wins!")
+        else:
+            print("It's a draw!")
+
+# Start a game
+game = FootballGame("Team A", "Team B")
+game.play()import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen setup
+screen_width = 800
+screen_height = 600
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption('Simple Football Game')
+
+# Colors
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+
+# Player class
+class Player(pygame.sprite.Sprite):
+    def __init__(self, color, x, y):
+        super().__init__()
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.speed = 5
+
+    def update(self, keys):
+        if keys[pygame.K_LEFT]:
+            self.rect.x -= self.speed
+        if keys[pygame.K_RIGHT]:
+            self.rect.x += self.speed
+        if keys[pygame.K_UP]:
+            self.rect.y -= self.speed
+        if keys[pygame.K_DOWN]:
+            self.rect.y += self.speed
+
+# Ball class
+class Ball(pygame.sprite.Sprite):
+    def __init__(self, color, x, y):
+        super().__init__()
+        self.image = pygame.Surface((30, 30))
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.speed_x = random.choice([3, -3])
+        self.speed_y = random.choice([3, -3])
+
+    def update(self):
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+
+        if self.rect.left <= 0 or self.rect.right >= screen_width:
+            self.speed_x = -self.speed_x
+        if self.rect.top <= 0 or self.rect.bottom >= screen_height:
+            self.speed_y = -self.speed_y
+
+# Initialize player and ball
+player1 = Player(RED, screen_width // 4, screen_height // 2)
+player2 = Player(BLUE, 3 * screen_width // 4, screen_height // 2)
+ball = Ball(WHITE, screen_width // 2, screen_height // 2)
+
+# Groups for sprites
+all_sprites = pygame.sprite.Group()
+all_sprites.add(player1, player2, ball)
+
+# Game loop
+running = True
+while running:
+    screen.fill(GREEN)  # Fill the screen with green color (field)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+    player1.update(keys)  # Move player 1
+    player2.update(keys)  # Move player 2
+    ball.update()  # Move the ball
+
+    # Check collision between players and ball
+    if player1.rect.colliderect(ball.rect):
+        ball.speed_x = random.choice([3, -3])
+        ball.speed_y = random.choice([3, -3])
+
+    if player2.rect.colliderect(ball.rect):
+        ball.speed_x = random.choice([3, -3])
+        ball.speed_y = random.choice([3, -3])
+
+    # Draw everything
+    all_sprites.draw(screen)
+
+    # Refresh the screen
+    pygame.display.flip()
+
+    # Frame rate
+    pygame.time.Clock().tick(60)
+
+pygame.quit()
